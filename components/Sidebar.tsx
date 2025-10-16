@@ -1,5 +1,5 @@
 import React from 'react';
-import { SettingsIcon } from './SettingsIcon';
+import { Theme } from '../App';
 
 interface SidebarProps {
   startDate: string;
@@ -7,10 +7,19 @@ interface SidebarProps {
   onStartDateChange: (date: string) => void;
   onEndDateChange: (date: string) => void;
   onSetDateRange: (days: number) => void;
-  onOpenSettings: () => void;
+  theme: Theme;
+  onThemeChange: (theme: Theme) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ startDate, endDate, onStartDateChange, onEndDateChange, onSetDateRange, onOpenSettings }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  startDate, 
+  endDate, 
+  onStartDateChange, 
+  onEndDateChange, 
+  onSetDateRange, 
+  theme,
+  onThemeChange
+}) => {
   const quickFilters = [
     { label: '7 Dias', days: 7 },
     { label: '15 Dias', days: 15 },
@@ -45,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ startDate, endDate, onStartDateChange
         </div>
 
         <h3 className="text-sm font-semibold text-light-text-secondary dark:text-dark-text-secondary uppercase tracking-wider mb-4">Período Customizado</h3>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 mb-8">
           <div>
             <label htmlFor="start-date" className="block text-xs font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
               Início
@@ -71,16 +80,21 @@ const Sidebar: React.FC<SidebarProps> = ({ startDate, endDate, onStartDateChange
             />
           </div>
         </div>
-      </div>
 
-      <div className="mt-auto">
-        <button 
-          onClick={onOpenSettings}
-          className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:hover:bg-dark-border hover:text-light-text-primary dark:hover:text-dark-text-primary transition-colors duration-200"
-        >
-          <SettingsIcon className="h-5 w-5" />
-          Configurações
-        </button>
+        <h3 className="text-sm font-semibold text-light-text-secondary dark:text-dark-text-secondary uppercase tracking-wider mb-4">Configurações</h3>
+         <div>
+            <label className="block text-xs font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+              Tema da Interface
+            </label>
+            <div className="flex items-center gap-2">
+                <button onClick={() => onThemeChange('light')} className={`w-full text-center px-4 py-2 rounded-md text-sm ${theme === 'light' ? 'bg-brand-primary text-white' : 'bg-light-bg dark:bg-dark-bg'}`}>
+                    Claro
+                </button>
+                <button onClick={() => onThemeChange('dark')} className={`w-full text-center px-4 py-2 rounded-md text-sm ${theme === 'dark' ? 'bg-brand-primary text-white' : 'bg-light-bg dark:bg-dark-bg'}`}>
+                    Escuro
+                </button>
+            </div>
+          </div>
       </div>
     </aside>
   );

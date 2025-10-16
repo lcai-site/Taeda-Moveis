@@ -4,7 +4,6 @@ import { fetchCampaignData } from './services/googleSheetsService';
 import Sidebar from './components/Sidebar';
 import DashboardGrid from './components/DashboardGrid';
 import InsightsGenerator from './components/InsightsGenerator';
-import SettingsModal from './components/SettingsModal';
 import { useSummaryMetrics } from './hooks/useSummaryMetrics';
 
 type ActiveTab = 'consolidated' | 'facebook' | 'instagram';
@@ -22,24 +21,20 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('consolidated');
   const [aggregation, setAggregation] = useState<AggregationLevel>('daily');
   
-  // Settings State
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>('dark');
-  const [apiKey, setApiKey] = useState<string>('');
 
   useEffect(() => {
-    // Load settings from localStorage on initial render
+    // Load theme from localStorage on initial render
     const savedTheme = localStorage.getItem('dashboard-theme') as Theme | null;
-    const savedApiKey = localStorage.getItem('dashboard-api-key');
     if (savedTheme) setTheme(savedTheme);
-    if (savedApiKey) setApiKey(savedApiKey);
   }, []);
   
   useEffect(() => {
-    // Apply theme class to the root element
+    // Apply theme class to the root element and save changes
     const root = window.document.documentElement;
     root.classList.remove(theme === 'light' ? 'dark' : 'light');
     root.classList.add(theme);
+    localStorage.setItem('dashboard-theme', theme);
   }, [theme]);
 
   const loadData = useCallback(() => {
@@ -123,7 +118,8 @@ const App: React.FC = () => {
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
         onSetDateRange={handleSetDateRange}
-        onOpenSettings={() => setIsSettingsModalOpen(true)}
+        theme={theme}
+        onThemeChange={setTheme}
       />
       <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
@@ -141,7 +137,6 @@ const App: React.FC = () => {
                 metrics={summaryMetrics} 
                 startDate={startDate} 
                 endDate={endDate} 
-                apiKey={apiKey}
               />
           </div>
 
@@ -180,14 +175,6 @@ const App: React.FC = () => {
           />
         </div>
       </main>
-      <SettingsModal 
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-        currentTheme={theme}
-        onThemeChange={setTheme}
-        currentApiKey={apiKey}
-        onApiKeyChange={setApiKey}
-      />
     </div>
   );
 };

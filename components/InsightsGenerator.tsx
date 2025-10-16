@@ -12,10 +12,9 @@ interface InsightsGeneratorProps {
     };
     startDate: string;
     endDate: string;
-    apiKey: string;
 }
 
-const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, startDate, endDate, apiKey }) => {
+const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, startDate, endDate }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [insights, setInsights] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -24,10 +23,10 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
         setIsLoading(true);
         setInsights(null);
         setShowModal(true);
-        const result = await generateInsights(data, metrics, startDate, endDate, apiKey);
+        const result = await generateInsights(data, metrics, startDate, endDate);
         setInsights(result);
         setIsLoading(false);
-    }, [data, metrics, startDate, endDate, apiKey]);
+    }, [data, metrics, startDate, endDate]);
 
     const handleDownloadPdf = () => {
         if (!insights) return;
