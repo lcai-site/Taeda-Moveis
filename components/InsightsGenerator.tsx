@@ -12,9 +12,10 @@ interface InsightsGeneratorProps {
     };
     startDate: string;
     endDate: string;
+    apiKey: string;
 }
 
-const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, startDate, endDate }) => {
+const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, startDate, endDate, apiKey }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [insights, setInsights] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -23,10 +24,10 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
         setIsLoading(true);
         setInsights(null);
         setShowModal(true);
-        const result = await generateInsights(data, metrics, startDate, endDate);
+        const result = await generateInsights(data, metrics, startDate, endDate, apiKey);
         setInsights(result);
         setIsLoading(false);
-    }, [data, metrics, startDate, endDate]);
+    }, [data, metrics, startDate, endDate, apiKey]);
 
     const handleDownloadPdf = () => {
         if (!insights) return;
@@ -124,11 +125,11 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
 
             if (line.startsWith('# ')) {
                 isList = false;
-                return <h1 key={index} className="text-2xl font-bold mt-4 mb-2">{line.replace('# ', '')}</h1>;
+                return <h1 key={index} className="text-2xl font-bold mt-4 mb-2 text-light-text-primary dark:text-dark-text-primary">{line.replace('# ', '')}</h1>;
             }
             if (line.startsWith('## ')) {
                 isList = false;
-                return <h2 key={index} className="text-xl font-bold mt-5 mb-2">{line.replace('## ', '')}</h2>;
+                return <h2 key={index} className="text-xl font-bold mt-5 mb-2 text-light-text-primary dark:text-dark-text-primary">{line.replace('## ', '')}</h2>;
             }
             if (line.startsWith('* ')) {
                 const content = <li key={index} className="ml-5 list-disc">{renderTextWithBold(line.substring(2))}</li>;
@@ -145,13 +146,15 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
             return <p key={index} className="my-2">{renderTextWithBold(line)}</p>;
         });
     };
+    
+    const isError = insights?.includes('## Erro de');
 
     return (
         <>
             <button
                 onClick={handleGenerateInsights}
                 disabled={isLoading}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-bg focus:ring-brand-primary disabled:bg-gray-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-light-bg dark:focus:ring-offset-dark-bg focus:ring-brand-primary disabled:bg-gray-500"
             >
                 {isLoading ? (
                     <>
@@ -167,22 +170,22 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
             </button>
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-                    <div className="bg-dark-card rounded-lg shadow-xl max-w-2xl w-full flex flex-col max-h-[90vh] border border-dark-border">
-                        <div className="p-6 border-b border-dark-border">
+                    <div className="bg-light-card dark:bg-dark-card rounded-lg shadow-xl max-w-2xl w-full flex flex-col max-h-[90vh] border border-light-border dark:border-dark-border">
+                        <div className="p-6 border-b border-light-border dark:border-dark-border">
                             <div className="flex justify-between items-center">
-                                <h2 className="text-2xl font-bold text-dark-text-primary">Análise da Campanha</h2>
-                                <button onClick={() => setShowModal(false)} className="text-dark-text-secondary text-2xl leading-none hover:text-dark-text-primary">&times;</button>
+                                <h2 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Análise da Campanha</h2>
+                                <button onClick={() => setShowModal(false)} className="text-light-text-secondary dark:text-dark-text-secondary text-2xl leading-none hover:text-light-text-primary dark:hover:text-dark-text-primary">&times;</button>
                             </div>
                         </div>
-                        <div className="p-6 overflow-y-auto text-dark-text-secondary">
-                            {isLoading && <div className="text-center text-dark-text-secondary">Gerando insights, por favor aguarde...</div>}
+                        <div className="p-6 overflow-y-auto text-light-text-secondary dark:text-dark-text-secondary">
+                            {isLoading && <div className="text-center">Gerando insights, por favor aguarde...</div>}
                             {insights && renderFormattedInsights(insights)}
                         </div>
-                        <div className="p-4 bg-dark-bg rounded-b-lg border-t border-dark-border mt-auto">
-                            {!isLoading && insights && (
+                        <div className="p-4 bg-light-bg dark:bg-dark-bg rounded-b-lg border-t border-light-border dark:border-dark-border mt-auto">
+                            {!isLoading && insights && !isError && (
                                 <button
                                     onClick={handleDownloadPdf}
-                                    className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-secondary hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-card focus:ring-brand-secondary"
+                                    className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-secondary hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-light-card dark:focus:ring-offset-dark-card focus:ring-brand-secondary"
                                 >
                                     Baixar PDF
                                 </button>

@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CampaignData, AggregationLevel } from '../types';
+import { Theme } from '../App';
 
 interface CostChartProps {
   data: CampaignData[];
   aggregation: AggregationLevel;
+  theme: Theme;
 }
 
 const getStartOfWeek = (d: Date) => {
@@ -14,7 +16,7 @@ const getStartOfWeek = (d: Date) => {
   return new Date(date.setDate(diff));
 }
 
-const CostChart: React.FC<CostChartProps> = ({ data, aggregation }) => {
+const CostChart: React.FC<CostChartProps> = ({ data, aggregation, theme }) => {
   const aggregatedData = useMemo(() => {
     const periodData: { [key: string]: { date: string; cost: number } } = {};
 
@@ -47,9 +49,15 @@ const CostChart: React.FC<CostChartProps> = ({ data, aggregation }) => {
 
   const formatCurrency = (value: number) => `R$${value.toFixed(2)}`;
 
+  const tickColor = theme === 'dark' ? '#9CA3AF' : '#6B7280';
+  const gridColor = theme === 'dark' ? '#374151' : '#E5E7EB';
+  const tooltipBackgroundColor = theme === 'dark' ? '#1F2937' : '#FFFFFF';
+  const tooltipBorderColor = theme === 'dark' ? '#374151' : '#E5E7EB';
+  const legendColor = theme === 'dark' ? '#F9FAFB' : '#374151';
+
   return (
-    <div className="bg-dark-card p-6 rounded-lg border border-dark-border shadow-lg">
-      <h3 className="text-xl font-semibold mb-4 text-dark-text-primary">Análise de Custos</h3>
+    <div className="bg-light-card dark:bg-dark-card p-6 rounded-lg border border-light-border dark:border-dark-border shadow-lg">
+      <h3 className="text-xl font-semibold mb-4 text-light-text-primary dark:text-dark-text-primary">Análise de Custos</h3>
       <div style={{ width: '100%', height: 350 }}>
         <ResponsiveContainer>
           <AreaChart data={aggregatedData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -59,12 +67,12 @@ const CostChart: React.FC<CostChartProps> = ({ data, aggregation }) => {
                 <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="date" tickFormatter={formatDate} stroke="#9CA3AF" />
-            <YAxis stroke="#9CA3AF" tickFormatter={formatCurrency} />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+            <XAxis dataKey="date" tickFormatter={formatDate} stroke={tickColor} />
+            <YAxis stroke={tickColor} tickFormatter={formatCurrency} />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }}
-              labelStyle={{ color: '#F9FAFB' }}
+              contentStyle={{ backgroundColor: tooltipBackgroundColor, border: `1px solid ${tooltipBorderColor}` }}
+              labelStyle={{ color: legendColor }}
               labelFormatter={formatDate}
               formatter={(value: number) => [formatCurrency(value), 'Custo']}
             />

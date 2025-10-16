@@ -4,9 +4,11 @@ import { fetchCampaignData } from './services/googleSheetsService';
 import Sidebar from './components/Sidebar';
 import DashboardGrid from './components/DashboardGrid';
 import InsightsGenerator from './components/InsightsGenerator';
+import SettingsModal from './components/SettingsModal';
 import { useSummaryMetrics } from './hooks/useSummaryMetrics';
 
 type ActiveTab = 'consolidated' | 'facebook' | 'instagram';
+export type Theme = 'light' | 'dark';
 
 const App: React.FC = () => {
   const today = new Date();
@@ -19,6 +21,26 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('consolidated');
   const [aggregation, setAggregation] = useState<AggregationLevel>('daily');
+  
+  // Settings State
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>('dark');
+  const [apiKey, setApiKey] = useState<string>('');
+
+  useEffect(() => {
+    // Load settings from localStorage on initial render
+    const savedTheme = localStorage.getItem('dashboard-theme') as Theme | null;
+    const savedApiKey = localStorage.getItem('dashboard-api-key');
+    if (savedTheme) setTheme(savedTheme);
+    if (savedApiKey) setApiKey(savedApiKey);
+  }, []);
+  
+  useEffect(() => {
+    // Apply theme class to the root element
+    const root = window.document.documentElement;
+    root.classList.remove(theme === 'light' ? 'dark' : 'light');
+    root.classList.add(theme);
+  }, [theme]);
 
   const loadData = useCallback(() => {
     setIsLoading(true);
@@ -87,36 +109,43 @@ const App: React.FC = () => {
   const AggregationButton: React.FC<{level: AggregationLevel, label: string}> = ({ level, label }) => (
       <button
         onClick={() => setAggregation(level)}
-        className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${aggregation === level ? 'bg-brand-primary text-white' : 'bg-dark-border text-dark-text-secondary hover:bg-gray-600'}`}
+        className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${aggregation === level ? 'bg-brand-primary text-white' : 'bg-light-border dark:bg-dark-border text-light-text-secondary dark:text-dark-text-secondary hover:bg-gray-300 dark:hover:bg-gray-600'}`}
       >
         {label}
       </button>
   );
 
   return (
-    <div className="flex min-h-screen bg-dark-bg text-dark-text-primary font-sans">
+    <div className="flex min-h-screen bg-light-bg dark:bg-dark-bg text-light-text-primary dark:text-dark-text-primary font-sans">
       <Sidebar 
         startDate={startDate}
         endDate={endDate}
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
         onSetDateRange={handleSetDateRange}
+        onOpenSettings={() => setIsSettingsModalOpen(true)}
       />
       <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>
-                  <h1 className="text-3xl font-bold text-dark-text-primary tracking-tight">
+                  <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary tracking-tight">
                     Meta Ads Performance
                   </h1>
-                  <p className="text-dark-text-secondary mt-1">
+                  <p className="text-light-text-secondary dark:text-dark-text-secondary mt-1">
                     Dashboard de resultados de campanhas para clientes.
                   </p>
               </div>
-              <InsightsGenerator data={filteredData} metrics={summaryMetrics} startDate={startDate} endDate={endDate} />
+              <InsightsGenerator 
+                data={filteredData} 
+                metrics={summaryMetrics} 
+                startDate={startDate} 
+                endDate={endDate} 
+                apiKey={apiKey}
+              />
           </div>
 
-          <div className="border-b border-dark-border mb-6">
+          <div className="border-b border-light-border dark:border-dark-border mb-6">
             <nav className="-mb-px flex space-x-6" aria-label="Tabs">
               {TABS.map(tab => (
                 <button
@@ -125,7 +154,7 @@ const App: React.FC = () => {
                   className={`${
                     activeTab === tab.id
                       ? 'border-brand-primary text-brand-primary'
-                      : 'border-transparent text-dark-text-secondary hover:text-dark-text-primary hover:border-gray-500'
+                      : 'border-transparent text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-gray-300 dark:hover:border-gray-500'
                   } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 focus:outline-none`}
                 >
                   {tab.label}
@@ -135,7 +164,7 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-2 mb-6">
-            <span className="text-sm font-medium text-dark-text-secondary">Visualizar por:</span>
+            <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">Visualizar por:</span>
             <AggregationButton level="daily" label="Diário" />
             <AggregationButton level="weekly" label="Semanal" />
             <AggregationButton level="monthly" label="Mensal" />
@@ -147,9 +176,18 @@ const App: React.FC = () => {
             error={error}
             aggregation={aggregation}
             activeTab={activeTab}
+            theme={theme}
           />
         </div>
       </main>
+      <SettingsModal 
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        currentTheme={theme}
+        onThemeChange={setTheme}
+        currentApiKey={apiKey}
+        onApiKeyChange={setApiKey}
+      />
     </div>
   );
 };

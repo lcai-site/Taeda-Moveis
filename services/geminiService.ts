@@ -1,27 +1,37 @@
 import { GoogleGenAI } from "@google/genai";
 import { CampaignData } from '../types';
 
-const API_KEY = process.env.API_KEY;
 let ai: GoogleGenAI | null = null;
+let currentApiKey: string | null = null;
 
-if (API_KEY) {
-  try {
-    ai = new GoogleGenAI({ apiKey: API_KEY });
-  } catch (error) {
-    console.error("Failed to initialize GoogleGenAI:", error);
+const initializeGemini = (apiKey: string) => {
+  if (apiKey && apiKey !== currentApiKey) {
+    try {
+      ai = new GoogleGenAI({ apiKey });
+      currentApiKey = apiKey;
+    } catch (error) {
+      console.error("Failed to initialize GoogleGenAI:", error);
+      ai = null;
+      currentApiKey = null;
+    }
+  } else if (!apiKey) {
+      ai = null;
+      currentApiKey = null;
   }
-} else {
-  console.warn("API_KEY environment variable not set. Gemini features will be disabled.");
-}
+};
+
 
 export const generateInsights = async (
   data: CampaignData[],
   metrics: { totalContacts: number; totalQualified: number; totalDisqualified: number; },
   startDate: string,
   endDate: string,
+  apiKey: string,
 ): Promise<string> => {
+  initializeGemini(apiKey);
+  
   if (!ai) {
-    return "## Erro de Configuração\n\nA chave da API para o Gemini não está configurada. Para habilitar esta funcionalidade, por favor, defina a variável de ambiente `API_KEY` nas configurações do seu projeto Vercel. O restante do dashboard continuará funcionando normalmente.";
+    return "## Erro de Configuração\n\nA chave da API para o Gemini não está configurada. Para habilitar esta funcionalidade, por favor, acesse as configurações (ícone de engrenagem) e insira sua chave da API.";
   }
   
   const qualificationRate = metrics.totalContacts > 0 ? (metrics.totalQualified / metrics.totalContacts * 100).toFixed(1) : '0';
@@ -50,7 +60,7 @@ export const generateInsights = async (
     **Formato de Saída:**
     - Use títulos markdown (ex: '## Resumo Geral dos Resultados').
     - Use listas com marcadores ('*') para os itens.
-    - Use negrito ('**texto**') para destacar métricas e termos importantes.
+    - Use negrito ('**texto**') для destacar métricas e termos importantes.
     - O tom deve ser consultivo e orientado para a solução.
     - **Importante:** A saída deve ser apenas o relatório em markdown, sem nenhum texto introdutório como "Claro, aqui está o relatório".
   `;
@@ -63,6 +73,9 @@ export const generateInsights = async (
     return response.text;
   } catch (error) {
     console.error("Error generating insights with Gemini:", error);
+    if (error instanceof Error && error.message.includes('API key not valid')) {
+        return "## Erro de Autenticação\n\nA chave da API fornecida é inválida. Por favor, verifique a chave nas configurações e tente novamente.";
+    }
     return "Ocorreu um erro ao gerar a análise. Por favor, tente novamente.";
   }
 };

@@ -7,6 +7,7 @@ import SourcePieChart from './SourceBreakdownChart';
 import CampaignsBarChart from './CampaignsBarChart';
 import CplTimelineChart from './CplTimelineChart';
 import CostChart from './CostChart';
+import { Theme } from '../App';
 
 interface DashboardGridProps {
   data: CampaignData[];
@@ -14,9 +15,10 @@ interface DashboardGridProps {
   error: string | null;
   aggregation: AggregationLevel;
   activeTab: 'consolidated' | 'facebook' | 'instagram';
+  theme: Theme;
 }
 
-const DashboardGrid: React.FC<DashboardGridProps> = ({ data, isLoading, error, aggregation, activeTab }) => {
+const DashboardGrid: React.FC<DashboardGridProps> = ({ data, isLoading, error, aggregation, activeTab, theme }) => {
   const { 
     totalContacts, 
     totalQualified, 
@@ -52,7 +54,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ data, isLoading, error, a
   }, [data, activeTab]);
 
   const ICONS = {
-    contacts: <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-dark-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+    contacts: <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-light-text-secondary dark:text-dark-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
     qualified: <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-brand-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
     disqualified: <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
     cost: <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 6v-1h4a2 2 0 012 2v10a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2h4z" /></svg>,
@@ -80,19 +82,19 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ data, isLoading, error, a
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-            <CampaignPerformanceChart data={data} aggregation={aggregation} />
+            <CampaignPerformanceChart data={data} aggregation={aggregation} theme={theme} />
         </div>
         <div>
-            <SourcePieChart title={breakdownChartInfo.title} data={breakdownChartInfo.data} />
+            <SourcePieChart title={breakdownChartInfo.title} data={breakdownChartInfo.data} theme={theme} />
         </div>
         <div className="lg:col-span-2">
-            <CampaignsBarChart data={data} />
+            <CampaignsBarChart data={data} theme={theme} />
         </div>
         <div>
-            <CplTimelineChart data={data} aggregation={aggregation} />
+            <CplTimelineChart data={data} aggregation={aggregation} theme={theme} />
         </div>
         <div className="lg:col-span-3">
-            <CostChart data={data} aggregation={aggregation} />
+            <CostChart data={data} aggregation={aggregation} theme={theme} />
         </div>
       </div>
     </>
