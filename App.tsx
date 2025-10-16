@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import DashboardGrid from './components/DashboardGrid';
 import InsightsGenerator from './components/InsightsGenerator';
 import { useSummaryMetrics } from './hooks/useSummaryMetrics';
+import { MenuIcon } from './components/MenuIcon';
 
 type ActiveTab = 'consolidated' | 'facebook' | 'instagram';
 export type Theme = 'light' | 'dark';
@@ -22,6 +23,8 @@ const App: React.FC = () => {
   const [aggregation, setAggregation] = useState<AggregationLevel>('daily');
   
   const [theme, setTheme] = useState<Theme>('dark');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
 
   useEffect(() => {
     // Load theme from localStorage on initial render
@@ -120,24 +123,33 @@ const App: React.FC = () => {
         onSetDateRange={handleSetDateRange}
         theme={theme}
         onThemeChange={setTheme}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
       <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-              <div>
-                  <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary tracking-tight">
-                    Meta Ads Performance
-                  </h1>
-                  <p className="text-light-text-secondary dark:text-dark-text-secondary mt-1">
-                    Dashboard de resultados de campanhas para clientes.
-                  </p>
+              <div className="flex items-center gap-4">
+                  <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 rounded-md text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:hover:bg-dark-border">
+                    <MenuIcon className="h-6 w-6" />
+                  </button>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-light-text-primary dark:text-dark-text-primary tracking-tight">
+                      Meta Ads Performance
+                    </h1>
+                    <p className="text-light-text-secondary dark:text-dark-text-secondary mt-1 text-sm sm:text-base">
+                      Dashboard de resultados de campanhas para clientes.
+                    </p>
+                  </div>
               </div>
-              <InsightsGenerator 
-                data={filteredData} 
-                metrics={summaryMetrics} 
-                startDate={startDate} 
-                endDate={endDate} 
-              />
+              <div className="self-end sm:self-center">
+                  <InsightsGenerator 
+                    data={filteredData} 
+                    metrics={summaryMetrics} 
+                    startDate={startDate} 
+                    endDate={endDate} 
+                  />
+              </div>
           </div>
 
           <div className="border-b border-light-border dark:border-dark-border mb-6">
