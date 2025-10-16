@@ -1,12 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 import { CampaignData } from '../types';
 
-// Initialize Gemini AI client using environment variable.
-// This should be set in the Vercel project settings.
-const API_KEY = process.env.API_KEY;
+// IMPORTANT: For demonstration purposes, the API key is hardcoded.
+// Replace "YOUR_API_KEY_HERE" with your actual Gemini API key.
+// In a production environment, it is strongly recommended to use environment variables.
+const API_KEY = "YOUR_API_KEY_HERE"; 
 let ai: GoogleGenAI | null = null;
 
-if (API_KEY) {
+if (API_KEY && API_KEY !== "YOUR_API_KEY_HERE") {
   try {
     ai = new GoogleGenAI({ apiKey: API_KEY });
   } catch (error) {
@@ -22,7 +23,7 @@ export const generateInsights = async (
   endDate: string,
 ): Promise<string> => {
   if (!ai) {
-    return "## Erro de Configuração: API Gemini\n\nA chave da API do Gemini não está configurada. Para habilitar esta funcionalidade, o administrador do sistema precisa definir a variável de ambiente `API_KEY` nas configurações do projeto Vercel. O restante do dashboard continuará funcionando normalmente.";
+    return "## Erro de Configuração: API Gemini\n\nA chave da API do Gemini não foi adicionada ao código-fonte. Para habilitar esta funcionalidade, o desenvolvedor precisa editar o arquivo `services/geminiService.ts` e substituir o placeholder pela chave de API válida.";
   }
   
   const qualificationRate = metrics.totalContacts > 0 ? (metrics.totalQualified / metrics.totalContacts * 100).toFixed(1) : '0';
@@ -65,7 +66,7 @@ export const generateInsights = async (
   } catch (error) {
     console.error("Error generating insights with Gemini:", error);
     if (error instanceof Error && error.message.includes('API key not valid')) {
-        return "## Erro de Autenticação: API Gemini\n\nA chave da API do Gemini fornecida é inválida ou expirou. O administrador do sistema precisa verificar a variável de ambiente `API_KEY` nas configurações do projeto Vercel.";
+        return "## Erro de Autenticação: API Gemini\n\nA chave da API do Gemini fornecida é inválida ou expirou. Por favor, verifique a chave no código-fonte em `services/geminiService.ts`.";
     }
     return "Ocorreu um erro ao gerar a análise. Por favor, tente novamente.";
   }
