@@ -67,7 +67,7 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
                 return;
             }
 
-            const cleanLine = line.replace(/\*\*/g, ''); // Remove bold markers for PDF
+            const cleanLine = line.replace(/\*\*/g, '').replace(/`/g, ''); // Remove bold and backtick markers for PDF
 
             checkPageBreak(10); 
             
@@ -115,11 +115,17 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
     const renderFormattedInsights = (text: string) => {
         let isList = false;
         return text.split('\n').map((line, index) => {
-            const renderTextWithBold = (textLine: string) => {
-                const parts = textLine.split(/\*\*(.*?)\*\*/g);
-                return parts.map((part, i) =>
-                    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-                );
+            const renderTextWithFormatting = (textLine: string) => {
+                const parts = textLine.split(/(\*\*.*?\*\*|`.*?`)/g);
+                return parts.map((part, i) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                        return <strong key={i}>{part.slice(2, -2)}</strong>;
+                    }
+                    if (part.startsWith('`') && part.endsWith('`')) {
+                        return <code key={i} className="bg-light-border dark:bg-dark-border text-red-500 font-mono text-sm px-1 py-0.5 rounded">{part.slice(1, -1)}</code>
+                    }
+                    return part;
+                });
             };
 
             if (line.startsWith('# ')) {
@@ -131,10 +137,10 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
                 return <h2 key={index} className="text-xl font-bold mt-5 mb-2 text-light-text-primary dark:text-dark-text-primary">{line.replace('## ', '')}</h2>;
             }
             if (line.startsWith('* ')) {
-                const content = <li key={index} className="ml-5 list-disc">{renderTextWithBold(line.substring(2))}</li>;
+                const content = <li key={index} className="ml-5 list-disc">{renderTextWithFormatting(line.substring(2))}</li>;
                 if (!isList) {
                     isList = true;
-                    return <ul key={`ul-${index}`} className="mt-2">{content}</ul>;
+                    return <ul key={`ul-${index}`} className="mt-2 space-y-1">{content}</ul>;
                 }
                 return content;
             }
@@ -142,7 +148,7 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
             if (line.trim() === '') {
                 return <div key={index} className="h-4" />;
             }
-            return <p key={index} className="my-2">{renderTextWithBold(line)}</p>;
+            return <p key={index} className="my-2">{renderTextWithFormatting(line)}</p>;
         });
     };
     
@@ -157,14 +163,14 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
             >
                 {isLoading ? (
                     <>
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         Analisando...
                     </>
                 ) : (
-                    "Gerar Análise com IA"
+                    "Gerar Análise com Gemini"
                 )}
             </button>
             {showModal && (
@@ -172,7 +178,7 @@ const InsightsGenerator: React.FC<InsightsGeneratorProps> = ({ data, metrics, st
                     <div className="bg-light-card dark:bg-dark-card rounded-lg shadow-xl max-w-2xl w-full flex flex-col max-h-[90vh] border border-light-border dark:border-dark-border">
                         <div className="p-6 border-b border-light-border dark:border-dark-border">
                             <div className="flex justify-between items-center">
-                                <h2 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Análise da Campanha</h2>
+                                <h2 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Análise da Campanha com Gemini</h2>
                                 <button onClick={() => setShowModal(false)} className="text-light-text-secondary dark:text-dark-text-secondary text-2xl leading-none hover:text-light-text-primary dark:hover:text-dark-text-primary">&times;</button>
                             </div>
                         </div>

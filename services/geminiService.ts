@@ -22,7 +22,7 @@ export const generateInsights = async (
   endDate: string,
 ): Promise<string> => {
   if (!ai) {
-    return "## Erro de Configuração\n\nA funcionalidade de análise por IA não está configurada corretamente. O administrador do sistema precisa definir a chave da API nas configurações de ambiente do projeto.";
+    return "## Erro de Configuração: API Gemini\n\nA chave da API do Gemini não está configurada. Para habilitar esta funcionalidade, o administrador do sistema precisa definir a variável de ambiente `API_KEY` nas configurações do projeto Vercel. O restante do dashboard continuará funcionando normalmente.";
   }
   
   const qualificationRate = metrics.totalContacts > 0 ? (metrics.totalQualified / metrics.totalContacts * 100).toFixed(1) : '0';
@@ -65,7 +65,7 @@ export const generateInsights = async (
   } catch (error) {
     console.error("Error generating insights with Gemini:", error);
     if (error instanceof Error && error.message.includes('API key not valid')) {
-        return "## Erro de Autenticação\n\nA chave da API fornecida é inválida. O administrador precisa verificar a chave nas configurações de ambiente.";
+        return "## Erro de Autenticação: API Gemini\n\nA chave da API do Gemini fornecida é inválida ou expirou. O administrador do sistema precisa verificar a variável de ambiente `API_KEY` nas configurações do projeto Vercel.";
     }
     return "Ocorreu um erro ao gerar a análise. Por favor, tente novamente.";
   }
