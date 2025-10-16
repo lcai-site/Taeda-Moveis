@@ -1,13 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 import { CampaignData } from '../types';
 
-// IMPORTANT: For demonstration purposes, the API key is hardcoded.
-// Replace "YOUR_API_KEY_HERE" with your actual Gemini API key.
-// In a production environment, it is strongly recommended to use environment variables.
-const API_KEY = "YOUR_API_KEY_HERE"; 
+// IMPORTANT: A demonstration API key has been embedded for this prototype.
+// For a production environment, it is strongly recommended to secure this key
+// using environment variables or a secret management service.
+const API_KEY = process.env.API_KEY; 
 let ai: GoogleGenAI | null = null;
 
-if (API_KEY && API_KEY !== "YOUR_API_KEY_HERE") {
+if (API_KEY) {
   try {
     ai = new GoogleGenAI({ apiKey: API_KEY });
   } catch (error) {
