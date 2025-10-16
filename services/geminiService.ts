@@ -1,19 +1,23 @@
 import { GoogleGenAI } from "@google/genai";
 import { CampaignData } from '../types';
 
-// IMPORTANT: A demonstration API key has been embedded for this prototype.
-// For a production environment, it is strongly recommended to secure this key
-// using environment variables or a secret management service.
-const API_KEY = process.env.API_KEY; 
-let ai: GoogleGenAI | null = null;
+// DEVELOPER ACTION REQUIRED:
+// Replace "YOUR_API_KEY_HERE" with your actual Gemini API key for the prototype to work.
+const API_KEY = "YOUR_API_KEY_HERE";
 
-if (API_KEY) {
+let ai: GoogleGenAI | null = null;
+let initError: string | null = null;
+
+// Initialize the AI client, but only if the placeholder API key has been replaced.
+if (API_KEY && API_KEY !== "YOUR_API_KEY_HERE") {
   try {
     ai = new GoogleGenAI({ apiKey: API_KEY });
   } catch (error) {
     console.error("Failed to initialize GoogleGenAI:", error);
-    ai = null;
+    initError = "## Erro de Inicialização\n\nOcorreu um erro ao inicializar a API Gemini. Verifique o console para mais detalhes.";
   }
+} else {
+  initError = "## Erro de Configuração: API Gemini\n\nA chave da API do Gemini não foi adicionada ao código-fonte. Para habilitar esta funcionalidade, o desenvolvedor precisa editar o arquivo `services/geminiService.ts` e substituir o placeholder pela chave de API válida.";
 }
 
 export const generateInsights = async (
@@ -22,8 +26,13 @@ export const generateInsights = async (
   startDate: string,
   endDate: string,
 ): Promise<string> => {
+  // Return the initialization error if the API key is not set correctly.
+  if (initError) {
+    return initError;
+  }
   if (!ai) {
-    return "## Erro de Configuração: API Gemini\n\nA chave da API do Gemini não foi adicionada ao código-fonte. Para habilitar esta funcionalidade, o desenvolvedor precisa editar o arquivo `services/geminiService.ts` e substituir o placeholder pela chave de API válida.";
+    // This is a fallback case, should not be reached if initError is handled properly.
+    return "## Erro Inesperado\n\nA API Gemini não foi inicializada. Contacte o suporte.";
   }
   
   const qualificationRate = metrics.totalContacts > 0 ? (metrics.totalQualified / metrics.totalContacts * 100).toFixed(1) : '0';
