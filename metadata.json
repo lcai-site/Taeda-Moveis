@@ -1,0 +1,5 @@
+{
+  "name": "Dashboard Taeda Móveis",
+  "description": "A visually appealing dashboard that displays key metrics from Meta Ads campaigns, pulling data from a Google Sheet. It features date filtering, summary cards for daily contacts, and performance charts to provide clients with a clear view of their campaign's success.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,125 @@
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { CampaignData } from './types';
+import { fetchCampaignData } from './services/googleSheetsService';
+import Sidebar from './components/Sidebar';
+import DashboardGrid from './components/DashboardGrid';
+import InsightsGenerator from './components/InsightsGenerator';
+import { useSummaryMetrics } from './hooks/useSummaryMetrics';
+
+type ActiveTab = 'consolidated' | 'facebook' | 'instagram';
+
+const App: React.FC = () => {
+  const today = new Date();
+  const thirtyDaysAgo = new Date(new Date().setDate(today.getDate() - 30));
+
+  const [startDate, setStartDate] = useState<string>(thirtyDaysAgo.toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState<string>(today.toISOString().split('T')[0]);
+  const [data, setData] = useState<CampaignData[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('consolidated');
+
+  const loadData = useCallback(() => {
+    setIsLoading(true);
+    setError(null);
+    // Add a day to the end date to make it inclusive in the filter
+    const inclusiveEndDate = new Date(endDate);
+    inclusiveEndDate.setDate(inclusiveEndDate.getDate() + 1);
+
+    fetchCampaignData(new Date(startDate), new Date(inclusiveEndDate))
+      .then(result => {
+        setData(result);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        setError("Failed to load campaign data.");
+        setIsLoading(false);
+        console.error(err);
+      });
+  }, [startDate, endDate]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleSetDateRange = (days: number) => {
+    const newEndDate = new Date();
+    const newStartDate = new Date();
+    newStartDate.setDate(newEndDate.getDate() - days);
+    setEndDate(newEndDate.toISOString().split('T')[0]);
+    setStartDate(newStartDate.toISOString().split('T')[0]);
+  };
+  
+  const filteredData = useMemo(() => {
+    if (activeTab === 'facebook') {
+      return data.filter(d => d.source.toLowerCase() === 'facebook');
+    }
+    if (activeTab === 'instagram') {
+      return data.filter(d => d.source.toLowerCase() === 'instagram');
+    }
+    return data;
+  }, [data, activeTab]);
+
+  const summaryMetrics = useSummaryMetrics(filteredData);
+  
+  const TABS: { id: ActiveTab; label: string }[] = [
+    { id: 'consolidated', label: 'Consolidado' },
+    { id: 'facebook', label: 'Facebook' },
+    { id: 'instagram', label: 'Instagram' },
+  ];
+
+  return (
+    <div className="flex min-h-screen bg-dark-bg text-dark-text-primary font-sans">
+      <Sidebar 
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        onSetDateRange={handleSetDateRange}
+      />
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <div>
+                  <h1 className="text-3xl font-bold text-dark-text-primary tracking-tight">
+                    Meta Ads Performance
+                  </h1>
+                  <p className="text-dark-text-secondary mt-1">
+                    Dashboard de resultados de campanhas para clientes.
+                  </p>
+              </div>
+              <InsightsGenerator data={filteredData} metrics={summaryMetrics} />
+          </div>
+
+          <div className="border-b border-dark-border mb-6">
+            <nav className="-mb-px flex space-x-6" aria-label="Tabs">
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`${
+                    activeTab === tab.id
+                      ? 'border-brand-primary text-brand-primary'
+                      : 'border-transparent text-dark-text-secondary hover:text-dark-text-primary hover:border-gray-500'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 focus:outline-none`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+          
+          <DashboardGrid 
+            data={filteredData} 
+            isLoading={isLoading} 
+            error={error} 
+            startDate={startDate}
+            endDate={endDate}
+          />
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default App;
