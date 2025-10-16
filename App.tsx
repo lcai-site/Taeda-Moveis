@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { CampaignData } from './types';
+import { CampaignData, AggregationLevel } from './types';
 import { fetchCampaignData } from './services/googleSheetsService';
 import Sidebar from './components/Sidebar';
 import DashboardGrid from './components/DashboardGrid';
@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('consolidated');
+  const [aggregation, setAggregation] = useState<AggregationLevel>('daily');
 
   const loadData = useCallback(() => {
     setIsLoading(true);
@@ -41,6 +42,21 @@ const App: React.FC = () => {
   useEffect(() => {
     loadData();
   }, [loadData]);
+  
+  useEffect(() => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 180) {
+      setAggregation('monthly');
+    } else if (diffDays > 60) {
+      setAggregation('weekly');
+    } else {
+      setAggregation('daily');
+    }
+  }, [startDate, endDate]);
 
   const handleSetDateRange = (days: number) => {
     const newEndDate = new Date();
@@ -67,6 +83,15 @@ const App: React.FC = () => {
     { id: 'facebook', label: 'Facebook' },
     { id: 'instagram', label: 'Instagram' },
   ];
+  
+  const AggregationButton: React.FC<{level: AggregationLevel, label: string}> = ({ level, label }) => (
+      <button
+        onClick={() => setAggregation(level)}
+        className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${aggregation === level ? 'bg-brand-primary text-white' : 'bg-dark-border text-dark-text-secondary hover:bg-gray-600'}`}
+      >
+        {label}
+      </button>
+  );
 
   return (
     <div className="flex min-h-screen bg-dark-bg text-dark-text-primary font-sans">
@@ -88,7 +113,7 @@ const App: React.FC = () => {
                     Dashboard de resultados de campanhas para clientes.
                   </p>
               </div>
-              <InsightsGenerator data={filteredData} metrics={summaryMetrics} />
+              <InsightsGenerator data={filteredData} metrics={summaryMetrics} startDate={startDate} endDate={endDate} />
           </div>
 
           <div className="border-b border-dark-border mb-6">
@@ -109,12 +134,19 @@ const App: React.FC = () => {
             </nav>
           </div>
           
+          <div className="flex items-center gap-2 mb-6">
+            <span className="text-sm font-medium text-dark-text-secondary">Visualizar por:</span>
+            <AggregationButton level="daily" label="Diário" />
+            <AggregationButton level="weekly" label="Semanal" />
+            <AggregationButton level="monthly" label="Mensal" />
+          </div>
+
           <DashboardGrid 
             data={filteredData} 
             isLoading={isLoading} 
-            error={error} 
-            startDate={startDate}
-            endDate={endDate}
+            error={error}
+            aggregation={aggregation}
+            activeTab={activeTab}
           />
         </div>
       </main>

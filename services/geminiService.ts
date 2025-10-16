@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { CampaignData } from '../types';
 
@@ -14,27 +13,29 @@ const ai = new GoogleGenAI({ apiKey: API_KEY! });
 
 export const generateInsights = async (
   data: CampaignData[],
-  metrics: { totalContacts: number; totalQualified: number; totalDisqualified: number; }
+  metrics: { totalContacts: number; totalQualified: number; totalDisqualified: number; },
+  startDate: string,
+  endDate: string,
 ): Promise<string> => {
   if (!API_KEY) {
     return "API Key for Gemini not configured. Please set the API_KEY environment variable.";
   }
 
   const prompt = `
-    Analyze the following Meta Ads campaign performance data and provide a concise, insightful summary in Portuguese for a client.
+    Analyze the following Meta Ads campaign performance data from ${startDate} to ${endDate} and provide a concise, insightful summary in Portuguese for a client.
     The summary should be easy to understand, avoiding technical jargon where possible.
     Focus on key trends, potential wins, and areas for improvement.
     Structure the output in markdown.
 
-    Summary Metrics:
+    Summary Metrics for the period:
     - Total Contacts: ${metrics.totalContacts}
     - Qualified Contacts: ${metrics.totalQualified}
     - Disqualified Contacts: ${metrics.totalDisqualified}
 
-    Detailed Daily Data (sample):
+    Detailed Daily Data (sample of the first 10 entries):
     ${JSON.stringify(data.slice(0, 10), null, 2)}
 
-    Please generate the analysis based on the full dataset provided.
+    Please generate the analysis based on the full dataset provided for the specified period.
   `;
 
   try {

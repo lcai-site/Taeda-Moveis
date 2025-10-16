@@ -1,12 +1,13 @@
-
 import { CampaignData } from '../types';
 
 // This is a mock data generator. In a real application, you would replace this
 // with an API call to a backend that fetches data from Google Sheets.
 const generateMockData = (startDate: Date, endDate: Date): CampaignData[] => {
   const data: CampaignData[] = [];
-  const sources = ['Facebook', 'Instagram', 'Google'];
+  const sources = ['Facebook', 'Instagram'];
   const campaigns = ['Campanha de Verão', 'Promoção de Inverno', 'Leads Qualificados'];
+  const fbPlacements: CampaignData['placement'][] = ['Feed', 'Stories', 'Reels', 'Messenger'];
+  const igPlacements: CampaignData['placement'][] = ['Feed', 'Stories', 'Reels', 'Direct'];
 
   let currentDate = new Date(startDate);
 
@@ -17,11 +18,20 @@ const generateMockData = (startDate: Date, endDate: Date): CampaignData[] => {
       const disqualified = contacts - qualified;
       const cost = Math.random() * 100 + 50;
       const cpl = cost / contacts;
+      const source = sources[Math.floor(Math.random() * sources.length)];
+      let placement: CampaignData['placement'];
+
+      if (source === 'Facebook') {
+        placement = fbPlacements[Math.floor(Math.random() * fbPlacements.length)];
+      } else { // Instagram
+        placement = igPlacements[Math.floor(Math.random() * igPlacements.length)];
+      }
       
       data.push({
         date: currentDate.toISOString().split('T')[0],
         campaign: campaigns[Math.floor(Math.random() * campaigns.length)],
-        source: sources[Math.floor(Math.random() * sources.length)],
+        source,
+        placement,
         contacts,
         qualified,
         disqualified,

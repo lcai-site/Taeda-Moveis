@@ -3,14 +3,26 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 
 interface SourcePieChartProps {
   data: { name: string; value: number }[];
+  title: string;
 }
 
-const COLORS = ['#1D4ED8', '#10B981', '#F59E0B', '#6366F1'];
+const COLORS = ['#1D4ED8', '#10B981', '#F59E0B', '#6366F1', '#EC4899', '#8B5CF6'];
 
-const SourcePieChart: React.FC<SourcePieChartProps> = ({ data }) => {
+const SourcePieChart: React.FC<SourcePieChartProps> = ({ data, title }) => {
+  if (data.length === 0) {
+    return (
+      <div className="bg-dark-card p-6 rounded-lg border border-dark-border shadow-lg h-full flex flex-col">
+        <h3 className="text-xl font-semibold mb-4 text-dark-text-primary">{title}</h3>
+        <div className="flex-grow flex items-center justify-center">
+            <p className="text-dark-text-secondary">Não há dados para exibir.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-dark-card p-6 rounded-lg border border-dark-border shadow-lg">
-      <h3 className="text-xl font-semibold mb-4 text-dark-text-primary">Origem dos Contatos</h3>
+      <h3 className="text-xl font-semibold mb-4 text-dark-text-primary">{title}</h3>
       <div style={{ width: '100%', height: 350 }}>
         <ResponsiveContainer>
           <PieChart>

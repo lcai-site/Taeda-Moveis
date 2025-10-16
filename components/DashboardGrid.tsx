@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { CampaignData } from '../types';
+import { CampaignData, AggregationLevel } from '../types';
 import { useSummaryMetrics } from '../hooks/useSummaryMetrics';
 import MetricCard from './MetricCard';
 import CampaignPerformanceChart from './CampaignPerformanceChart';
@@ -12,11 +12,11 @@ interface DashboardGridProps {
   data: CampaignData[];
   isLoading: boolean;
   error: string | null;
-  startDate: string;
-  endDate: string;
+  aggregation: AggregationLevel;
+  activeTab: 'consolidated' | 'facebook' | 'instagram';
 }
 
-const DashboardGrid: React.FC<DashboardGridProps> = ({ data, isLoading, error, startDate, endDate }) => {
+const DashboardGrid: React.FC<DashboardGridProps> = ({ data, isLoading, error, aggregation, activeTab }) => {
   const { 
     totalContacts, 
     totalQualified, 
@@ -27,13 +27,29 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ data, isLoading, error, s
     qualificationRate 
   } = useSummaryMetrics(data);
 
-  const aggregatedBySource = useMemo(() => {
-    const sourceMap = new Map<string, number>();
-    data.forEach(item => {
-      sourceMap.set(item.source, (sourceMap.get(item.source) || 0) + item.contacts);
-    });
-    return Array.from(sourceMap.entries()).map(([name, value]) => ({ name, value }));
-  }, [data]);
+  const breakdownChartInfo = useMemo(() => {
+    if (activeTab === 'consolidated') {
+      const sourceMap = new Map<string, number>();
+      data.forEach(item => {
+        sourceMap.set(item.source, (sourceMap.get(item.source) || 0) + item.contacts);
+      });
+      return {
+          title: "Origem dos Contatos",
+          data: Array.from(sourceMap.entries()).map(([name, value]) => ({ name, value }))
+      };
+    } else {
+      const placementMap = new Map<string, number>();
+      data.forEach(item => {
+        if (item.placement) {
+            placementMap.set(item.placement, (placementMap.get(item.placement) || 0) + item.contacts);
+        }
+      });
+      return {
+          title: "Contatos por Posicionamento",
+          data: Array.from(placementMap.entries()).map(([name, value]) => ({ name, value }))
+      };
+    }
+  }, [data, activeTab]);
 
   const ICONS = {
     contacts: <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-dark-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
@@ -64,19 +80,19 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ data, isLoading, error, s
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-            <CampaignPerformanceChart data={data} startDate={startDate} endDate={endDate} />
+            <CampaignPerformanceChart data={data} aggregation={aggregation} />
         </div>
         <div>
-            <SourcePieChart data={aggregatedBySource} />
+            <SourcePieChart title={breakdownChartInfo.title} data={breakdownChartInfo.data} />
         </div>
         <div className="lg:col-span-2">
             <CampaignsBarChart data={data} />
         </div>
         <div>
-            <CplTimelineChart data={data} />
+            <CplTimelineChart data={data} aggregation={aggregation} />
         </div>
         <div className="lg:col-span-3">
-            <CostChart data={data} />
+            <CostChart data={data} aggregation={aggregation} />
         </div>
       </div>
     </>

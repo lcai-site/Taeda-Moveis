@@ -1,14 +1,11 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { CampaignData } from '../types';
+import { CampaignData, AggregationLevel } from '../types';
 
 interface CampaignPerformanceChartProps {
   data: CampaignData[];
-  startDate: string;
-  endDate: string;
+  aggregation: AggregationLevel;
 }
-
-type AggregationLevel = 'daily' | 'weekly' | 'monthly';
 
 // Helper to get the start of the week (Sunday)
 const getStartOfWeek = (d: Date) => {
@@ -18,23 +15,7 @@ const getStartOfWeek = (d: Date) => {
   return new Date(date.setDate(diff));
 }
 
-const CampaignPerformanceChart: React.FC<CampaignPerformanceChartProps> = ({ data, startDate, endDate }) => {
-  const [aggregation, setAggregation] = useState<AggregationLevel>('daily');
-
-  useEffect(() => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays > 180) {
-      setAggregation('monthly');
-    } else if (diffDays > 60) {
-      setAggregation('weekly');
-    } else {
-      setAggregation('daily');
-    }
-  }, [startDate, endDate]);
+const CampaignPerformanceChart: React.FC<CampaignPerformanceChartProps> = ({ data, aggregation }) => {
 
   const aggregatedData = useMemo(() => {
     const dailyData: { [key: string]: { date: string; qualified: number; disqualified: number } } = {};
@@ -89,24 +70,10 @@ const CampaignPerformanceChart: React.FC<CampaignPerformanceChartProps> = ({ dat
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   };
 
-  const AggregationButton: React.FC<{level: AggregationLevel, label: string}> = ({ level, label }) => (
-      <button
-        onClick={() => setAggregation(level)}
-        className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${aggregation === level ? 'bg-brand-primary text-white' : 'bg-dark-border text-dark-text-secondary hover:bg-gray-600'}`}
-      >
-        {label}
-      </button>
-  );
-
   return (
     <div className="bg-dark-card p-6 rounded-lg border border-dark-border shadow-lg">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
         <h3 className="text-xl font-semibold text-dark-text-primary">Desempenho da Campanha</h3>
-        <div className="flex items-center gap-2 mt-2 sm:mt-0">
-          <AggregationButton level="daily" label="Diário" />
-          <AggregationButton level="weekly" label="Semanal" />
-          <AggregationButton level="monthly" label="Mensal" />
-        </div>
       </div>
       <div style={{ width: '100%', height: 350 }}>
         <ResponsiveContainer>
